@@ -67,8 +67,8 @@ class ForTest {
 class Result {
     @Test
     fun result() {
-        assertEquals(955584,DayOnePartOne().find2020(File("src/main/kotlin/day1/day1-input.txt").readLines()))
-        assertEquals(287503934, DayOnePartTwo().find2020(File("src/main/kotlin/day1/day1-input.txt").readLines()))
+        assertEquals(955584,DayOnePartOne().find2020(File("src/main/kotlin/day1/input.txt").readLines()))
+        assertEquals(287503934, DayOnePartTwo().find2020(File("src/main/kotlin/day1/input.txt").readLines()))
     }
 }
 
