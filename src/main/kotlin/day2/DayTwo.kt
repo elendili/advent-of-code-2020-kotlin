@@ -4,12 +4,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File
 
-/*
-how: iterate over list of strings and add to hashmap int values
- */
-
-private const val goal = 2020
-
 abstract class DayTwo {
     fun process(strings: List<String>): Int {
         var out = 0;
@@ -61,7 +55,7 @@ class TestSake {
     }
 }
 
-class ResultSake {
+private class ResultSake {
     @Test
     fun result() {
         val lines = File("src/main/kotlin/day2/input.txt").readLines()
