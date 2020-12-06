@@ -4,10 +4,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File
 
-/*
-how: iterate over list of strings and add to hashmap int values
- */
-
 private const val goal = 2020
 
 class DayOnePartOne {
@@ -71,7 +67,3 @@ class Result {
         assertEquals(287503934, DayOnePartTwo().find2020(File("src/main/kotlin/day1/input.txt").readLines()))
     }
 }
-
-/*fun main() {
-    // {}::class.java.getResource("/day1/Day1Kt.class")  // <== returns file, to get text file resource need to add it in classpath
-}*/
