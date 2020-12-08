@@ -101,7 +101,7 @@ cid (Country ID) - ignored, missing or not.
     }
 }
 
-class TestSake1 {
+class TestSake {
     @Test
     fun testOnProvidedSamples() {
         var input =

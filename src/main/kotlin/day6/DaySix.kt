@@ -32,7 +32,7 @@ class DaySixPartTwo : DaySix() {
     }
 }
 
-class TestSake1 {
+class TestSake {
     @Test
     fun testOnProvidedSamples() {
         val input = """abc

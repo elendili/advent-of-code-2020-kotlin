@@ -34,7 +34,7 @@ class DayThree {
 }
 
 
-class TestSake1 {
+class TestSake {
     @Test
     fun testOnProvidedSamples() {
         val input =

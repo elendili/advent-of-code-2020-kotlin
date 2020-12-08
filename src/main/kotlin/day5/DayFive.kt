@@ -46,7 +46,7 @@ class DayFive {
 }
 
 
-class TestSake1 {
+class TestSake {
     @Test
     fun testOnProvidedSamples() {
         assertEquals(44, DayFive().getNumber("FBFBBFF", 'F'))
