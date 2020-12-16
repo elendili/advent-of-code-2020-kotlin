@@ -7,22 +7,37 @@ import java.io.File
 data class DayFifteen(val string: String) {
     class NumbersHistory {
         private val track: MutableMap<Int, IntArray> = mutableMapOf()
-        fun add(element: Int, index: Int) {
-            track.compute(element) { _, v ->
+        private val track2: MutableMap<Int, Int> = mutableMapOf()
+        fun add(last: Int, turn: Int) {
+            track.compute(last) { _, v ->
                 val array = v ?: IntArray(2)
                 array[0] = array[1]
-                array[1] = index
+                array[1] = turn
                 array
             }
+            track2[last] = if (track2.containsKey(last)) -turn else turn
         }
 
-        fun difference(last: Int): Int {
+        fun difference(last: Int, turn: Int): Int {
+//            val b = track2[last]!!
+//            val out2 = if (b < 0) {
+//                0
+//            } else {
+//               b
+//            }
+//            track2[out2] = if (track2.containsKey(out2)) -turn else turn
+
+
             val a = track[last]!!
-            return if (a[0] == 0) {
+            val out = if (a[0] == 0) {
                 0
             } else {
-                a[1] - a[0]
+                turn - 1 - a[0]
             }
+
+//            println("$out,$out2")
+            this.add(out, turn)
+            return out;
         }
 
         fun size(): Int {
@@ -39,14 +54,11 @@ data class DayFifteen(val string: String) {
         var turn = 1
         val history = NumbersHistory()
         // prepare
-        numbers.forEach { e -> history.add(e, turn++) }
+        numbers.forEach { e -> history.difference(e, turn++) }
         var lastDiff = numbers.last() // last said word and difference with previous appearance at the same time
         while (turn <= finalTurn) {
-            lastDiff = history.difference(lastDiff)
-            history.add(lastDiff, turn)
-            turn++
+            lastDiff = history.difference(lastDiff, turn++)
         }
-        println(history.size())
         return lastDiff
     }
 
@@ -63,7 +75,7 @@ class TestSake {
         assertEquals(0, DayFifteen("0,3,6").partOne(8))
         assertEquals(4, DayFifteen("0,3,6").partOne(9))
         assertEquals(0, DayFifteen("0,3,6").partOne(10))
-        assertEquals(436, DayFifteen("0,3,6").partOne())
+//        assertEquals(436, DayFifteen("0,3,6").partOne())
     }
 
     @Test
