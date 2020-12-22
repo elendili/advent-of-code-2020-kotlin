@@ -3,24 +3,26 @@ package day22
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.util.*
+import kotlin.collections.ArrayDeque
 
 
 open class DayTwentyTwo(val string: String) {
-    internal val deck1: ArrayDeque<Byte>
-    internal val deck2: ArrayDeque<Byte>
+    internal val deck1: ArrayDeque<Int>
+    internal val deck2: ArrayDeque<Int>
 
     init {
         val l = string.split(Regex("Player.*"))
             .filter { it.isNotBlank() }
             .map { playerData ->
-                playerData.split('\n').filter { it.isNotBlank() }.map { it.toByte() }.toCollection(ArrayDeque<Byte>())
+                playerData.split('\n').filter { it.isNotBlank() }.map { it.toInt() }.toCollection(ArrayDeque())
             }
         deck1 = l.first()
         deck2 = l.last()
     }
 
-    fun game(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>, gameNumber: Int): ArrayDeque<Byte>? {
-        var winner: ArrayDeque<Byte>?;
+    fun game(deck1: ArrayDeque<Int>, deck2: ArrayDeque<Int>, gameNumber: Int): ArrayDeque<Int>? {
+        var winner: ArrayDeque<Int>?;
         do {
             val c1 = deck1.removeFirst()!!
             val c2 = deck2.removeFirst()!!
@@ -43,7 +45,7 @@ open class DayTwentyTwo(val string: String) {
     }
 
     fun partOne(): Long {
-        val winner: ArrayDeque<Byte>?
+        val winner: ArrayDeque<Int>?
         winner = game(deck1, deck2, 1)!!
         println("winner: $winner")
         return winner.asReversed().mapIndexed { index, e ->
@@ -52,7 +54,7 @@ open class DayTwentyTwo(val string: String) {
     }
 
     fun partTwo(): Long {
-        val winner: ArrayDeque<Byte>?
+        val winner: ArrayDeque<Int>?
         winner = Recursive(deck1, deck2).game()!!
         println("winner: $winner")
         return winner.asReversed().mapIndexed { index, e ->
@@ -61,51 +63,42 @@ open class DayTwentyTwo(val string: String) {
     }
 }
 
-class Recursive(val deck1: ArrayDeque<Byte>, val deck2: ArrayDeque<Byte>) {
-    private val snapshots: MutableSet<Long> = HashSet()
-    private fun findStateInHistoryOrSave(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>): Boolean {
-        val state = (deck1.hashCode().toLong() shl 32) + deck2.hashCode().toLong()
-        return if (snapshots.contains(state)) {
-            true
-        } else {
-            snapshots.add(state)
-            false
-        }
-    }
+class Recursive(val list1: List<Int>, val list2: List<Int>) {
+    private val snapshots: MutableSet<Int> = mutableSetOf()
+    private val deck1 = ArrayDeque<Int>().apply { addAll(list1) }
+    private val deck2 = ArrayDeque<Int>().apply { addAll(list2) }
 
-    fun game(): ArrayDeque<Byte>? {
-        var winner: ArrayDeque<Byte>?;
+    fun game(): ArrayDeque<Int>? {
+        var winner: ArrayDeque<Int>?
         do {
-            if (findStateInHistoryOrSave(deck1, deck2)) {
+            if (!snapshots.add(Objects.hash(deck1, deck2))) {
                 return deck1
             }
-            val c1 = deck1.removeFirst()!!
-            val c2 = deck2.removeFirst()!!
+            val c1 = deck1.removeFirst()
+            val c2 = deck2.removeFirst()
 
             // recurse here
-            if (c1 <= deck1.size && c2 <= deck2.size) {
-                winner = Recursive(
-                    deck1.take(c1.toInt()).toCollection(ArrayDeque()),
-                    deck2.take(c2.toInt()).toCollection(ArrayDeque())
+            winner = if (c1 <= deck1.size && c2 <= deck2.size) {
+                Recursive(
+                    deck1.take(c1),
+                    deck2.take(c2)
                 ).game()
             } else {
-                winner = if (c1 > c2) deck1 else deck2
+                if (c1 > c2) deck1 else deck2
             }
 
             if (winner == deck1) {
-                deck1 += c1
-                deck1 += c2
+                deck1.addLast(c1)
+                deck1.addLast(c2)
             } else {
-                deck2 += c2
-                deck2 += c1
+                deck2.addLast(c2)
+                deck2.addLast(c1)
             }
 
-            if (deck2.isEmpty()) {
-                winner = deck1
-            } else if (deck1.isEmpty()) {
-                winner = deck2
-            } else {
-                winner = null
+            winner = when {
+                deck2.isEmpty() -> deck1
+                deck1.isEmpty() -> deck2
+                else -> null
             }
         } while (winner == null);
         return winner
@@ -166,7 +159,7 @@ class ResultSake {
     @Test
     fun result2() {
         val executor = DayTwentyTwo(File("src/main/kotlin/day22/input.txt").readText())
-        assertEquals(35069, executor.partTwo()) // incorrect
+        assertEquals(33266, executor.partTwo()) // incorrect
     }
 
 }
