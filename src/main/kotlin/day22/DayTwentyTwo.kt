@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import java.io.File
 
 
-open class DayTwentyTwoPartOne(val string: String) {
+open class DayTwentyTwo(val string: String) {
     internal val deck1: ArrayDeque<Byte>
     internal val deck2: ArrayDeque<Byte>
 
@@ -19,7 +19,7 @@ open class DayTwentyTwoPartOne(val string: String) {
         deck2 = l.last()
     }
 
-    open fun game(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>, gameNumber: Int): ArrayDeque<Byte>? {
+    fun game(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>, gameNumber: Int): ArrayDeque<Byte>? {
         var winner: ArrayDeque<Byte>?;
         do {
             val c1 = deck1.removeFirst()!!
@@ -42,7 +42,7 @@ open class DayTwentyTwoPartOne(val string: String) {
         return winner
     }
 
-    fun execute(): Long {
+    fun partOne(): Long {
         val winner: ArrayDeque<Byte>?
         winner = game(deck1, deck2, 1)!!
         println("winner: $winner")
@@ -50,16 +50,22 @@ open class DayTwentyTwoPartOne(val string: String) {
             e.toLong() * (index + 1)
         }.sum()
     }
+
+    fun partTwo(): Long {
+        val winner: ArrayDeque<Byte>?
+        winner = Recursive(deck1, deck2).game()!!
+        println("winner: $winner")
+        return winner.asReversed().mapIndexed { index, e ->
+            e.toLong() * (index + 1)
+        }.sum()
+    }
 }
 
-class DayTwentyTwoPartTwo(string: String) : DayTwentyTwoPartOne(string) {
+class Recursive(val deck1: ArrayDeque<Byte>, val deck2: ArrayDeque<Byte>) {
     private val snapshots: MutableSet<Long> = HashSet()
     private fun findStateInHistoryOrSave(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>): Boolean {
         val state = (deck1.hashCode().toLong() shl 32) + deck2.hashCode().toLong()
         return if (snapshots.contains(state)) {
-            if ((counter).rem(100_000) == 0) {
-                println("returned because state existed. size of history: ${snapshots.size}")
-            }
             true
         } else {
             snapshots.add(state)
@@ -67,17 +73,9 @@ class DayTwentyTwoPartTwo(string: String) : DayTwentyTwoPartOne(string) {
         }
     }
 
-    var counter = 0
-    override fun game(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>, gameNumber: Int): ArrayDeque<Byte>? {
-        if ((counter++).rem(100_000) == 0) {
-            println("game: $gameNumber. $counter")
-        }
-//            println(deck1)
-//            println(deck2)
-//            println("----")
+    fun game(): ArrayDeque<Byte>? {
         var winner: ArrayDeque<Byte>?;
         do {
-
             if (findStateInHistoryOrSave(deck1, deck2)) {
                 return deck1
             }
@@ -86,11 +84,10 @@ class DayTwentyTwoPartTwo(string: String) : DayTwentyTwoPartOne(string) {
 
             // recurse here
             if (c1 <= deck1.size && c2 <= deck2.size) {
-                winner = game(
+                winner = Recursive(
                     deck1.take(c1.toInt()).toCollection(ArrayDeque()),
-                    deck2.take(c2.toInt()).toCollection(ArrayDeque()),
-                    gameNumber + 1
-                )
+                    deck2.take(c2.toInt()).toCollection(ArrayDeque())
+                ).game()
             } else {
                 winner = if (c1 > c2) deck1 else deck2
             }
@@ -133,18 +130,18 @@ Player 2:
 
     @Test
     fun test1() {
-        assertEquals(306, DayTwentyTwoPartOne(sample).execute())
+        assertEquals(306, DayTwentyTwo(sample).partOne())
     }
 
     @Test
     fun test2Check() {
-        assertEquals(291, DayTwentyTwoPartTwo(sample).execute())
+        assertEquals(291, DayTwentyTwo(sample).partTwo())
     }
 
     @Test
     fun test2InfiniteCheck() {
         assertEquals(
-            105, DayTwentyTwoPartTwo(
+            105, DayTwentyTwo(
                 """Player 1:
 43
 19
@@ -153,7 +150,7 @@ Player 2:
 2
 29
 14"""
-            ).execute()
+            ).partTwo()
         )
     }
 
@@ -162,14 +159,14 @@ Player 2:
 class ResultSake {
     @Test
     fun result1() {
-        val executor = DayTwentyTwoPartOne(File("src/main/kotlin/day22/input.txt").readText())
-        assertEquals(35299, executor.execute())
+        val executor = DayTwentyTwo(File("src/main/kotlin/day22/input.txt").readText())
+        assertEquals(35299, executor.partOne())
     }
 
     @Test
     fun result2() {
-        val executor = DayTwentyTwoPartTwo(File("src/main/kotlin/day22/input.txt").readText())
-        assertEquals(34604, executor.execute())
+        val executor = DayTwentyTwo(File("src/main/kotlin/day22/input.txt").readText())
+        assertEquals(35069, executor.partTwo()) // incorrect
     }
 
 }
