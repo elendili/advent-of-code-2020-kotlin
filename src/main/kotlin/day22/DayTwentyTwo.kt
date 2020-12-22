@@ -3,34 +3,27 @@ package day22
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.util.*
-import kotlin.collections.HashSet
 
-typealias Deck = LinkedList<Byte>
-
-fun Deck.copy(count: Byte = this.size.toByte()): Deck {
-    return Deck(this.subList(0, count.toInt()).toList())
-}
 
 open class DayTwentyTwoPartOne(val string: String) {
-    internal val deck1: Deck
-    internal val deck2: Deck
+    internal val deck1: ArrayDeque<Byte>
+    internal val deck2: ArrayDeque<Byte>
 
     init {
         val l = string.split(Regex("Player.*"))
             .filter { it.isNotBlank() }
             .map { playerData ->
-                playerData.split('\n').filter { it.isNotBlank() }.map { it.toByte() }.toCollection(Deck())
+                playerData.split('\n').filter { it.isNotBlank() }.map { it.toByte() }.toCollection(ArrayDeque<Byte>())
             }
         deck1 = l.first()
         deck2 = l.last()
     }
 
-    open fun game(deck1: Deck, deck2: Deck, gameNumber: Int): Deck? {
-        var winner: Deck?;
+    open fun game(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>, gameNumber: Int): ArrayDeque<Byte>? {
+        var winner: ArrayDeque<Byte>?;
         do {
-            val c1 = deck1.poll()!!
-            val c2 = deck2.poll()!!
+            val c1 = deck1.removeFirst()!!
+            val c2 = deck2.removeFirst()!!
             if (c1 > c2) {
                 deck1 += c1
                 deck1 += c2
@@ -50,9 +43,7 @@ open class DayTwentyTwoPartOne(val string: String) {
     }
 
     fun execute(): Long {
-        val winner: Deck?
-        val deck1 = deck1.copy()
-        val deck2 = deck2.copy()
+        val winner: ArrayDeque<Byte>?
         winner = game(deck1, deck2, 1)!!
         println("winner: $winner")
         return winner.asReversed().mapIndexed { index, e ->
@@ -63,10 +54,12 @@ open class DayTwentyTwoPartOne(val string: String) {
 
 class DayTwentyTwoPartTwo(string: String) : DayTwentyTwoPartOne(string) {
     private val snapshots: MutableSet<Long> = HashSet()
-    private fun findStateInHistoryOrSave(deck1: Deck, deck2: Deck): Boolean {
+    private fun findStateInHistoryOrSave(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>): Boolean {
         val state = (deck1.hashCode().toLong() shl 32) + deck2.hashCode().toLong()
         return if (snapshots.contains(state)) {
-            println("returned because state existed. size of history: ${snapshots.size}")
+            if ((counter).rem(100_000) == 0) {
+                println("returned because state existed. size of history: ${snapshots.size}")
+            }
             true
         } else {
             snapshots.add(state)
@@ -74,25 +67,30 @@ class DayTwentyTwoPartTwo(string: String) : DayTwentyTwoPartOne(string) {
         }
     }
 
-    override fun game(deck1: Deck, deck2: Deck, gameNumber: Int): Deck? {
-        if (gameNumber > 1) {
-            println("game: $gameNumber")
+    var counter = 0
+    override fun game(deck1: ArrayDeque<Byte>, deck2: ArrayDeque<Byte>, gameNumber: Int): ArrayDeque<Byte>? {
+        if ((counter++).rem(100_000) == 0) {
+            println("game: $gameNumber. $counter")
         }
 //            println(deck1)
 //            println(deck2)
 //            println("----")
-        var winner: Deck?;
+        var winner: ArrayDeque<Byte>?;
         do {
 
             if (findStateInHistoryOrSave(deck1, deck2)) {
                 return deck1
             }
-            val c1 = deck1.poll()!!
-            val c2 = deck2.poll()!!
+            val c1 = deck1.removeFirst()!!
+            val c2 = deck2.removeFirst()!!
 
             // recurse here
             if (c1 <= deck1.size && c2 <= deck2.size) {
-                winner = game(deck1.copy(c1), deck2.copy(c2), gameNumber + 1)
+                winner = game(
+                    deck1.take(c1.toInt()).toCollection(ArrayDeque()),
+                    deck2.take(c2.toInt()).toCollection(ArrayDeque()),
+                    gameNumber + 1
+                )
             } else {
                 winner = if (c1 > c2) deck1 else deck2
             }
