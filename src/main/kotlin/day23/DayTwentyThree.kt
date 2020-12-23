@@ -16,37 +16,49 @@ data class CircleNode(val value: Int, var next: CircleNode? = null, var prev: Ci
 class DayTwentyThree(val string: String, countTowards: Int = 0) {
     private val minCup: Int
     private val maxCup: Int
-    val cups: MutableList<CircleNode>
+    val cups: MutableMap<Int, CircleNode> = mutableMapOf()
     val head: CircleNode
+    val tail: CircleNode
 
     init {
-        cups = string.toCharArray().map {
-            CircleNode(it.toString().toInt())
-        }.toList().toMutableList()
+        val cupValues = string.toCharArray().map {
+            it.toString().toInt()
+        }.toList()
 
-        var localMaxCup: Int = -1
-        for (i in cups.indices) {
-            if (i + 1 < cups.size) {
-                cups[i].next = cups[i + 1]
-            }
-            if (i > 0) {
-                cups[i].prev = cups[i - 1]
-            }
-            localMaxCup = Math.max(localMaxCup, cups[i].value)
+        val headValue = cupValues.first()
+        head = CircleNode(headValue)
+        cups[headValue] = head
+        var localMaxCup: Int = headValue
+        var localMinCup: Int = headValue
+        var localTail = head
+
+        cupValues.drop(1).forEach {
+            val circleNode = CircleNode(it)
+            circleNode.prev = localTail
+            localTail.next = circleNode
+
+            localMaxCup = Math.max(localMaxCup, it)
+            localMinCup = Math.min(localMinCup, it)
+
+            cups[it] = circleNode
+
+            localTail = circleNode
         }
-        head = cups[0]
-        minCup = cups.map { it.value }.minOrNull()!!
 
+        // add more elements for part two
         for (i in localMaxCup + 1..countTowards) {
-            val newNode = CircleNode(i)
-            newNode.prev = cups.last()
-            cups.last().next = newNode
-            cups.add(newNode)
+            val circleNode = CircleNode(i)
+            circleNode.prev = localTail
+            localTail.next = circleNode
+            localTail = circleNode
             localMaxCup = i
+            cups[i] = circleNode
         }
-        cups.last().next = cups.first()
-        cups.first().prev = cups.last()
+        localTail.next = head
+        head.prev = localTail
+        minCup = localMinCup
         maxCup = localMaxCup
+        tail = localTail
     }
 
     fun game(number: Int) {
@@ -75,9 +87,7 @@ class DayTwentyThree(val string: String, countTowards: Int = 0) {
                     destCupValue -= 1
                 }
             }
-            val destCup = cups.firstOrNull { e ->
-                e.value == destCupValue
-            }!!
+            val destCup = cups.get(destCupValue)!!
 
             // insert what was cut
             val targetOfSlice = destCup.next!!
@@ -92,10 +102,10 @@ class DayTwentyThree(val string: String, countTowards: Int = 0) {
         }
     }
 
-    fun partOne(number: Int): String {
-        game(number)
+    fun partOne(rounds: Int): String {
+        game(rounds)
         // gather Output for round 1
-        var current = cups.first { it.value == 1 }.next!!
+        var current = cups.get(1)!!.next!!
         var out = ""
         while (current.value != 1) {
             out += current.value
@@ -104,10 +114,10 @@ class DayTwentyThree(val string: String, countTowards: Int = 0) {
         return out
     }
 
-    fun partTwo(number: Int): Long {
-        game(number)
+    fun partTwo(rounds: Int): Long {
+        game(rounds)
         // gather Output for round 1
-        val firstAfterOne = cups.first { it.value == 1 }.next!!
+        val firstAfterOne = cups.get(1)!!.next!!
         val multiplied = firstAfterOne.value.toLong() * firstAfterOne.next!!.value.toLong()
         return multiplied
     }
@@ -123,11 +133,15 @@ class TestSake1 {
     }
 
 }
+
 class TestSake2 {
 
     @Test
     fun testFor2() {
-        assertEquals("67384529", DayTwentyThree("38125467", 9).partTwo(100))
+        assertEquals(
+            149245887792,
+            DayTwentyThree("389125467", 1_000_000).partTwo(10_000_000)
+        )
     }
 
 }
@@ -137,6 +151,14 @@ class ResultSake {
     fun result1() {
         val executor = DayTwentyThree("318946572")
         assertEquals("52864379", executor.partOne(100))
+    }
+
+    @Test
+    fun result2() {
+        assertEquals(
+            11591415792,
+            DayTwentyThree("318946572", 1_000_000).partTwo(10_000_000)
+        )
     }
 
 }
